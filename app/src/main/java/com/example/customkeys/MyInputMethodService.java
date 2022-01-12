@@ -51,6 +51,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     } else {
                         inputConnection.commitText("", 1);
                     }
+                    break;
                 case Keyboard.KEYCODE_SHIFT:
                     caps = !caps;
                     keyboard.setShifted(caps);
