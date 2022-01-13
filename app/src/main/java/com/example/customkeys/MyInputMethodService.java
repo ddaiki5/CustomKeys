@@ -79,7 +79,8 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     if(textToCut==null)break;
                     ClipData clipCut = ClipData.newPlainText(null, textToCut.toString());
                     clipboardManager.setPrimaryClip(clipCut);
-                    inputConnection.deleteSurroundingText(textToCut.length(), 0);
+                    //inputConnection.deleteSurroundingText(textToCut.length(), 0);
+                    inputConnection.commitText("", 1);
                     break;
                 case CustomCode.KEYCODE_PASTE:
                     //clipboardから文字データを取得
