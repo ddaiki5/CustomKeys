@@ -68,45 +68,60 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
                     break;
                 case CustomCode.KEYCODE_COPY:
-                    CharSequence textToCopy = inputConnection.getSelectedText(0);
-                    if(textToCopy==null)break;
-                    ClipData clipCopy = ClipData.newPlainText(null, textToCopy.toString());
-                    clipboardManager.setPrimaryClip(clipCopy);
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_COPY));
+                    //CharSequence textToCopy = inputConnection.getSelectedText(0);
+                    //if(textToCopy==null)break;
+                   // ClipData clipCopy = ClipData.newPlainText(null, textToCopy.toString());
+                    //clipboardManager.setPrimaryClip(clipCopy);
                     break;
                 case CustomCode.KEYCODE_CUT:
-                    CharSequence textToCut;
-                    textToCut = inputConnection.getSelectedText(0);
-                    if(textToCut==null)break;
-                    ClipData clipCut = ClipData.newPlainText(null, textToCut.toString());
-                    clipboardManager.setPrimaryClip(clipCut);
-                    //inputConnection.deleteSurroundingText(textToCut.length(), 0);
-                    inputConnection.commitText("", 1);
+//                    CharSequence textToCut;
+//                    textToCut = inputConnection.getSelectedText(0);
+//                    if(textToCut==null)break;
+//                    ClipData clipCut = ClipData.newPlainText(null, textToCut.toString());
+//                    clipboardManager.setPrimaryClip(clipCut);
+//                    //inputConnection.deleteSurroundingText(textToCut.length(), 0);
+//                    inputConnection.commitText("", 1);
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CUT));
                     break;
                 case CustomCode.KEYCODE_PASTE:
                     //clipboardから文字データを取得
-                    CharSequence textToPaste;
-                    try {
-                        textToPaste = clipboardManager.getPrimaryClip().getItemAt(0).getText();
-                    } catch (Exception e) {
-                        break;
-                    }
-                    inputConnection.setComposingText(textToPaste, 0);
+//                    CharSequence textToPaste;
+//                    try {
+//                        textToPaste = clipboardManager.getPrimaryClip().getItemAt(0).getText();
+//                    } catch (Exception e) {
+//                        break;
+//                    }
+//                    inputConnection.setComposingText(textToPaste, 0);
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_PASTE));
                     break;
                 case CustomCode.KEYCODE_UNDO:
                     break;
                 case CustomCode.KEYCODE_REDO:
                     break;
                 case CustomCode.KEYCODE_REGION:
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_));
                     break;
                 case CustomCode.KEYCODE_TAB:
+                    //inputConnection.commitText("\t", 1);
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
+                    break;
+                case CustomCode.KEYCODE_LEFTCURSOR:
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+                    break;
+                case CustomCode.KEYCODE_RIGHTCURSOR:
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
                     break;
                 default :
-                    char code = (char) primaryCode;
-                    if(Character.isLetter(code) && caps){
-                        code = Character.toUpperCase(code);
+                    if (primaryCode>=10100 && primaryCode <=10150){
+                        inputConnection.commitText(CustomCode.fifty[primaryCode-10100], 1);
+                    }else{
+                        char code = (char) primaryCode;
+                        if (Character.isLetter(code) && caps) {
+                            code = Character.toUpperCase(code);
+                        }
+                        inputConnection.commitText(String.valueOf(code), 1);
                     }
-                    inputConnection.commitText(String.valueOf(code), 1);
-
             }
         }
 

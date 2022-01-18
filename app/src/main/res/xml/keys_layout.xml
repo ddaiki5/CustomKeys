@@ -27,25 +27,25 @@
 
     <Row>
         <Key android:codes="10007" android:keyLabel="←" android:keyEdgeFlags="left" />
-        <Key android:codes="10115, 10116, 10117, 10118, 10119" android:keyLabel="た" />
-        <Key android:codes="10120, 10121, 10122, 10123, 10124" android:keyLabel="な" />
-        <Key android:codes="10125, 10126, 10127, 10128, 10129" android:keyLabel="は" />
+        <Key android:codes="10115,10116,10117,10118,10119" android:keyLabel="た" />
+        <Key android:codes="10120,10121,10122,10123,10124" android:keyLabel="な" />
+        <Key android:codes="10125,10126,10127,10128,10129" android:keyLabel="は" />
         <Key android:codes="10008" android:keyLabel="→" android:keyEdgeFlags="right" />
     </Row>
 
     <Row>
         <Key android:codes="10009" android:keyLabel="図記" android:keyEdgeFlags="left" />
-        <Key android:codes="10130, 10131, 10132, 10133, 10134" android:keyLabel="ま" />
-        <Key android:codes="10135, 10136, 10137, 10138, 10139" android:keyLabel="や" />
-        <Key android:codes="10140, 10141, 10142, 10143, 10144" android:keyLabel="ら" />
+        <Key android:codes="10130,10131,10132,10133,10134" android:keyLabel="ま" />
+        <Key android:codes="10135,10136,10137,10138,10139" android:keyLabel="や" />
+        <Key android:codes="10140,10141,10142,10143,10144" android:keyLabel="ら" />
         <Key android:codes="32" android:keyLabel="SPACE" android:isRepeatable="true" android:keyEdgeFlags="right" />
     </Row>
 
     <Row android:rowEdgeFlags="bottom">
         <Key android:codes="10010" android:keyLabel="あa" android:keyEdgeFlags="left"/>
-        <Key android:codes="10011, 10012" android:keyLabel="゛゜" />
-        <Key android:codes="10145, 10146, 10147" android:keyLabel="わ" />
-        <Key android:codes="44, 46" android:keyLabel=", ." />
+        <Key android:codes="10011,10012,10013" android:keyLabel="゛゜小" />
+        <Key android:codes="10145,10146,10147" android:keyLabel="わ" />
+        <Key android:codes="44,46" android:keyLabel=", ." />
         <Key android:codes="-4" android:keyBackground="@color/colorPrimary" android:keyLabel="DONE" android:keyEdgeFlags="right"/>
     </Row>
 
