@@ -43,7 +43,7 @@
 
     <Row android:rowEdgeFlags="bottom">
         <Key android:codes="10010" android:keyLabel="あa" android:keyEdgeFlags="left"/>
-        <Key android:codes="10011,10012,10013" android:keyLabel="゛゜小" />
+        <Key android:codes="10011" android:keyLabel="゛゜小" />
         <Key android:codes="10145,10146,10147" android:keyLabel="わ" />
         <Key android:codes="44,46" android:keyLabel=", ." />
         <Key android:codes="-4" android:keyBackground="@color/colorPrimary" android:keyLabel="DONE" android:keyEdgeFlags="right"/>
