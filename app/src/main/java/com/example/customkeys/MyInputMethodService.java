@@ -100,7 +100,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                 case CustomCode.KEYCODE_REDO:
                     break;
                 case CustomCode.KEYCODE_REGION:
-                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_));
+                    //inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_));
                     break;
                 case CustomCode.KEYCODE_TAB:
                     //inputConnection.commitText("\t", 1);
@@ -112,9 +112,22 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                 case CustomCode.KEYCODE_RIGHTCURSOR:
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
                     break;
+                case CustomCode.KEYCODE_DIACRITIC:
+                    CharSequence diacritic_target = inputConnection.getTextBeforeCursor(1, 0);
+                    Log.d("diacritic_target", diacritic_target.toString());
+                    if(diacritic_target==null) {
+                        break;
+                    }
+                    String converted_target = CustomCode.convert_diatric(diacritic_target.toString());
+                    Log.d("converted_target", converted_target);
+                    if(converted_target != null) {
+                        inputConnection.deleteSurroundingText(1, 0);
+                        inputConnection.commitText(converted_target, 1);
+                    }
+                    break;
                 default :
-                    if (primaryCode>=10100 && primaryCode <=10150){
-                        inputConnection.commitText(CustomCode.fifty[primaryCode-10100], 1);
+                    if (primaryCode>=CustomCode.KEYCODE_kana && primaryCode <=CustomCode.KEYCODE_kana_end){
+                        inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana], 1);
                     }else{
                         char code = (char) primaryCode;
                         if (Character.isLetter(code) && caps) {
