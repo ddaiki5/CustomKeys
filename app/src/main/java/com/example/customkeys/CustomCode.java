@@ -13,7 +13,9 @@ public class CustomCode {
     public static final int KEYCODE_LEFTCURSOR = 10007;
     public static final int KEYCODE_RIGHTCURSOR = 10008;
     public static final int KEYCODE_TAB = 61;
+    public static final int KEYCODE_DIACRITIC = 10011;
     public static final int KEYCODE_kana = 10100;
+    public static final int KEYCODE_kana_end = 10181;
     public static final String[] NUM_TO_FIFTY = {
             "あ", "い", "う", "え", "お",
             "か", "き", "く", "け", "こ",
@@ -74,4 +76,13 @@ public class CustomCode {
             0, 2, 4, 17, 35,
             37, 39
     };
+
+    public static String convert_diatric(String target){
+        if(FIFTY_TO_NUM.containsKey(target)) {
+            int target_num = FIFTY_TO_NUM.get(target);
+            int convert_num = CONVERT_TABLE[target_num];
+            return NUM_TO_FIFTY[convert_num];
+        }
+        return null;
+    }
 }
