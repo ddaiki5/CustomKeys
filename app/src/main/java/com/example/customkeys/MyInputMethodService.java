@@ -29,8 +29,22 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
     private boolean caps = false;
     private boolean isSelectionMode = false;
-    private int relativeCursol = 0;
 
+    private final Handler longPressHandler = new Handler();
+    private final Runnable longPressReceiver = new Runnable() {
+        @Override
+        public void run() {
+            isLongPress = true;
+        }
+    };
+    private boolean isLongPress = false;
+
+//    MyInputMethodService(){
+//        longPressHandler = new Handler();
+//        longPressReceriver = new Runnable(){
+//            isLongPress = true;
+//        };
+//    }
 
 
     @Override
@@ -51,12 +65,13 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
     @Override
     public void onPress(int i) {
-
+        longPressHandler.postDelayed(longPressReceiver, 1000);
     }
 
     @Override
     public void onRelease(int i) {
-
+        longPressHandler.removeCallbacks(longPressReceiver);
+        isLongPress = false;
     }
 
 
@@ -124,11 +139,13 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
                     break;
                 case CustomCode.KEYCODE_LEFTCURSOR:
-                    if(isSelectionMode) {
+                    if(isSelectionMode) {//選択モードのとき
                         ExtractedText leftExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
                         int leftStartIndex = leftExtractedText.startOffset + leftExtractedText.selectionStart;
                         int leftEndIndex = leftExtractedText.startOffset + leftExtractedText.selectionEnd;
                         inputConnection.setSelection(leftStartIndex, leftEndIndex - 1);
+                    }else if(isLongPress) {//1秒以上長押ししたとき
+                        inputConnection.setSelection(0, 0);
                     }else{
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
                     }
