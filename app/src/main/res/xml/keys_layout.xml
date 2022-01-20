@@ -13,8 +13,8 @@
         <Key android:codes="10002" android:keyLabel="past" android:keyWidth="14%p"/>
         <Key android:codes="10003" android:keyLabel="un" android:keyWidth="14%p"/>
         <Key android:codes="10004" android:keyLabel="re" android:keyWidth="14%p"/>
-        <Key android:codes="10005" android:keyLabel="rg" android:keyWidth="14%p"/>
-        <Key android:codes="61" android:keyLabel="tab" android:keyWidth="14%p" android:keyEdgeFlags="right"/>
+        <Key android:codes="10005" android:keyLabel="select" android:keyWidth="14%p" android:isSticky="true"/>
+        <Key android:codes="61" android:keyLabel="tab" android:keyWidth="15%p" android:keyEdgeFlags="right"/>
     </Row>
 
     <Row>

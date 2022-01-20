@@ -14,6 +14,8 @@ public class CustomCode {
     public static final int KEYCODE_RIGHTCURSOR = 10008;
     public static final int KEYCODE_TAB = 61;
     public static final int KEYCODE_DIACRITIC = 10011;
+    public static final int KEYCODE_UPCURSOR = 10012;
+    public static final int KEYCODE_DOWNCURSOR = 10013;
     public static final int KEYCODE_kana = 10100;
     public static final int KEYCODE_kana_end = 10181;
     public static final String[] NUM_TO_FIFTY = {

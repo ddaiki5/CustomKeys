@@ -10,6 +10,7 @@ import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
@@ -18,6 +19,7 @@ import android.view.inputmethod.InputConnection;
 import android.text.TextUtils;
 
 import java.text.BreakIterator;
+import java.util.List;
 
 public class MyInputMethodService extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
 
@@ -38,13 +40,9 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
         }
     };
     private boolean isLongPress = false;
-
-//    MyInputMethodService(){
-//        longPressHandler = new Handler();
-//        longPressReceriver = new Runnable(){
-//            isLongPress = true;
-//        };
-//    }
+    private List<Keyboard.Key> keylist;
+    private float tapX = 0;
+    private float tapY = 0;
 
 
     @Override
@@ -53,7 +51,33 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
         keyboard = new Keyboard(this, R.xml.keys_layout);
         keyboardView.setKeyboard(keyboard);
         keyboardView.setOnKeyboardActionListener(this);
+        keylist = keyboardView.getKeyboard().getKeys();
+//        keyboardView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent motionEvent) {
+//                float x = motionEvent.getX();
+//                float y = motionEvent.getY();
+//
+//                switch (motionEvent.getAction() & motionEvent.ACTION_MASK){
+//                    case motionEvent.ACTION_DOWN:
+//                        tapX = x;
+//                        tapY = y;
+//                        return false;
+//                    case motionEvent.ACTION_MOVE:
+//                        Log.d("onTouch", "move");
+//                        return true;
+//                    case motionEvent.ACTION_UP:
+//                        Log.d("onTouch", "end");
+//                        return false;
+//                    default:
+//                        Log.d("onTouch", "end");
+//                        return true;
+//                }
+//                return true;
+//            }
+//        });
         clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
         return keyboardView;
     }
 
@@ -128,11 +152,15 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_PASTE));
                     break;
                 case CustomCode.KEYCODE_UNDO:
+                    Log.d("UNDO", "push UNDO");
                     break;
                 case CustomCode.KEYCODE_REDO:
+                    Log.d("REDO", "push REDO");
                     break;
                 case CustomCode.KEYCODE_REGION:
                     isSelectionMode = !isSelectionMode;
+                    keyboard.setShifted(isSelectionMode);
+                    keyboardView.invalidateAllKeys();
                     break;
                 case CustomCode.KEYCODE_TAB:
                     //inputConnection.commitText("\t", 1);
@@ -149,6 +177,12 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     }else{
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
                     }
+                    break;
+                case CustomCode.KEYCODE_UPCURSOR:
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP));
+                    break;
+                case CustomCode.KEYCODE_DOWNCURSOR:
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
                     break;
                 case CustomCode.KEYCODE_RIGHTCURSOR:
 
