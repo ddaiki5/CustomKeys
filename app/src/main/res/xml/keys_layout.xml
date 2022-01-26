@@ -13,8 +13,8 @@
         <Key android:codes="10002" android:keyLabel="past" android:keyWidth="14%p"/>
         <Key android:codes="10003" android:keyLabel="un" android:keyWidth="14%p"/>
         <Key android:codes="10004" android:keyLabel="re" android:keyWidth="14%p"/>
-        <Key android:codes="10005" android:keyLabel="rg" android:keyWidth="14%p"/>
-        <Key android:codes="61" android:keyLabel="tab" android:keyWidth="14%p" android:keyEdgeFlags="right"/>
+        <Key android:codes="10005" android:keyLabel="select" android:keyWidth="14%p" android:isSticky="true"/>
+        <Key android:codes="61" android:keyLabel="tab" android:keyWidth="15%p" android:keyEdgeFlags="right"/>
     </Row>
 
     <Row>
@@ -26,11 +26,11 @@
     </Row>
 
     <Row>
-        <Key android:codes="10007" android:keyLabel="←" android:keyEdgeFlags="left" />
+        <Key android:codes="10007" android:keyLabel="←" android:keyEdgeFlags="left" android:isRepeatable="true" />
         <Key android:codes="10115,10116,10117,10118,10119" android:keyLabel="た" />
         <Key android:codes="10120,10121,10122,10123,10124" android:keyLabel="な" />
         <Key android:codes="10125,10126,10127,10128,10129" android:keyLabel="は" />
-        <Key android:codes="10008" android:keyLabel="→" android:keyEdgeFlags="right" />
+        <Key android:codes="10008" android:keyLabel="→" android:keyEdgeFlags="right" android:isRepeatable="true" />
     </Row>
 
     <Row>
