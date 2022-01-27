@@ -89,13 +89,13 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
     @Override
     public void onPress(int i) {
-        longPressHandler.postDelayed(longPressReceiver, 1000);
+        //longPressHandler.postDelayed(longPressReceiver, 1000);
     }
 
     @Override
     public void onRelease(int i) {
-        longPressHandler.removeCallbacks(longPressReceiver);
-        isLongPress = false;
+        //longPressHandler.removeCallbacks(longPressReceiver);
+        //isLongPress = false;
     }
 
 
@@ -153,6 +153,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 case CustomCode.KEYCODE_UNDO:
                     Log.d("UNDO", "push UNDO");
+                    isLongPress = !isLongPress;
                     break;
                 case CustomCode.KEYCODE_REDO:
                     Log.d("REDO", "push REDO");
@@ -191,6 +192,11 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                         int rightStartIndex = rightExtractedText.startOffset + rightExtractedText.selectionStart;
                         int rightEndIndex = rightExtractedText.startOffset + rightExtractedText.selectionEnd;
                         inputConnection.setSelection(rightStartIndex, rightEndIndex + 1);
+                    }else if(isLongPress){
+                        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
+                        if (extractedText == null || extractedText.text == null) return;
+                        int index = extractedText.text.length();
+                        inputConnection.setSelection(index, index);
                     }else{
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
                     }
