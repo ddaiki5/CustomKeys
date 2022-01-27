@@ -58,12 +58,12 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
             text = t;
             sentenceBoundary.setText(t.toString());
             wordBoundary.setText(t.toString());
-            int start = wordBoundary.first();
-            for (int end = wordBoundary.next();
-                 end != BreakIterator.DONE;
-                 start = end, end = wordBoundary.next()) {
-                Log.d("set", "[" + t.toString().substring(start, end) + "]");
-            }
+//            int start = wordBoundary.first();
+//            for (int end = wordBoundary.next();
+//                 end != BreakIterator.DONE;
+//                 start = end, end = wordBoundary.next()) {
+//                Log.d("set", "[" + t.toString().substring(start, end) + "]");
+//            }
         }
 
         public int getNearestCursorNum(int i, int direction){
@@ -76,13 +76,14 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
             if(wordLimit == BreakIterator.DONE){
                 return BreakIterator.DONE;
             }
-            Log.d("cur", "[" + text.toString().substring(wordBoundary.previous(), wordLimit) + "]");
+            //Log.d("cur", "[" + text.toString().substring(wordBoundary.previous(), wordLimit) + "]");
             return wordLimit;
         }
     }
 
     private Memo memo;
     private int currentStartIndex, currentEndIndex, currentIndex;
+    private int keyDirection = 0;//left=1, up=2, right=3, down=4
 
 
 
@@ -94,30 +95,43 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
         keyboardView.setKeyboard(keyboard);
         keyboardView.setOnKeyboardActionListener(this);
         keylist = keyboardView.getKeyboard().getKeys();
-//        keyboardView.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent motionEvent) {
-//                float x = motionEvent.getX();
-//                float y = motionEvent.getY();
-//
-//                switch (motionEvent.getAction() & motionEvent.ACTION_MASK){
-//                    case motionEvent.ACTION_DOWN:
-//                        tapX = x;
-//                        tapY = y;
-//                        return false;
-//                    case motionEvent.ACTION_MOVE:
-//                        Log.d("onTouch", "move");
-//                        return true;
-//                    case motionEvent.ACTION_UP:
-//                        Log.d("onTouch", "end");
-//                        return false;
-//                    default:
-//                        Log.d("onTouch", "end");
-//                        return true;
-//                }
-//                return true;
-//            }
-//        });
+        keyboardView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                float x = motionEvent.getX();
+                float y = motionEvent.getY();
+
+                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK){
+                    case MotionEvent.ACTION_DOWN:
+                        tapX = x;
+                        tapY = y;
+                        keyDirection=0;
+                        return false;
+                    case MotionEvent.ACTION_MOVE:
+                        Log.d("onTouch", "move");
+                        if(tapX-x>=keyboardView.getWidth()/8){
+                            keyDirection=1;
+                        }else if(tapX-x<=-keyboardView.getHeight()/8){
+                            keyDirection = 3;
+                        }else if(tapY-y<=-keyboardView.getWidth()/8){
+                            keyDirection=4;
+                        }else if(tapY-y>=keyboardView.getHeight()/8){
+                            keyDirection=2;
+                        }else{
+                            keyDirection = 0;
+                        }
+
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        Log.d("onTouch", "end");
+                        return false;
+                    default:
+                        Log.d("onTouch", "end");
+                        return true;
+                }
+            }
+        });
+
         clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         memo = new Memo();
 
@@ -266,7 +280,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 default :
                     if (primaryCode>=CustomCode.KEYCODE_kana && primaryCode <=CustomCode.KEYCODE_kana_end){
-                        inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana], 1);
+                        inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
                     }else{
                         char code = (char) primaryCode;
                         if (Character.isLetter(code) && caps) {
@@ -288,7 +302,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
     @Override
     public void swipeLeft() {
-
+        Log.d("swipe", "ok");
     }
 
     @Override
