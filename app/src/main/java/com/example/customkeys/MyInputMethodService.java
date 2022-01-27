@@ -20,6 +20,7 @@ import android.text.TextUtils;
 
 import java.text.BreakIterator;
 import java.util.List;
+import java.util.Locale;
 
 public class MyInputMethodService extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
 
@@ -43,6 +44,47 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     private List<Keyboard.Key> keylist;
     private float tapX = 0;
     private float tapY = 0;
+
+    public class Memo{
+        public CharSequence text;
+        private BreakIterator sentenceBoundary, wordBoundary;
+
+        Memo(){
+            sentenceBoundary = BreakIterator.getSentenceInstance(Locale.JAPANESE);
+            wordBoundary = BreakIterator.getWordInstance(Locale.JAPANESE);
+        }
+
+        public void setText(CharSequence t){
+            text = t;
+            sentenceBoundary.setText(t.toString());
+            wordBoundary.setText(t.toString());
+            int start = wordBoundary.first();
+            for (int end = wordBoundary.next();
+                 end != BreakIterator.DONE;
+                 start = end, end = wordBoundary.next()) {
+                Log.d("set", "[" + t.toString().substring(start, end) + "]");
+            }
+        }
+
+        public int getNearestCursorNum(int i, int direction){
+            int wordLimit = wordBoundary.following(i);
+            if(direction==1) {
+
+            }else {
+                wordLimit = wordBoundary.next(-2);
+            }
+            if(wordLimit == BreakIterator.DONE){
+                return BreakIterator.DONE;
+            }
+            Log.d("cur", "[" + text.toString().substring(wordBoundary.previous(), wordLimit) + "]");
+            return wordLimit;
+        }
+    }
+
+    private Memo memo;
+    private int currentStartIndex, currentEndIndex, currentIndex;
+
+
 
 
     @Override
@@ -77,6 +119,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 //            }
 //        });
         clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        memo = new Memo();
 
         return keyboardView;
     }
@@ -104,6 +147,16 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     public void onKey(int primaryCode, int[] keyCodes) {
         InputConnection inputConnection = getCurrentInputConnection();
         if (inputConnection != null) {
+
+            ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
+
+
+            memo.setText(extractedText.text);
+
+            currentIndex = extractedText.startOffset;
+            currentStartIndex = extractedText.startOffset + extractedText.selectionStart;
+            currentEndIndex = extractedText.startOffset + extractedText.selectionEnd;
+
             switch(primaryCode) {
                 case Keyboard.KEYCODE_DELETE :
                     CharSequence selectedText = inputConnection.getSelectedText(0);
@@ -157,6 +210,8 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 case CustomCode.KEYCODE_REDO:
                     Log.d("REDO", "push REDO");
+                    int end = memo.getNearestCursorNum(currentStartIndex, 1);
+                    inputConnection.setSelection(end, end);
                     break;
                 case CustomCode.KEYCODE_REGION:
                     isSelectionMode = !isSelectionMode;
@@ -169,10 +224,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 case CustomCode.KEYCODE_LEFTCURSOR:
                     if(isSelectionMode) {//選択モードのとき
-                        ExtractedText leftExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
-                        int leftStartIndex = leftExtractedText.startOffset + leftExtractedText.selectionStart;
-                        int leftEndIndex = leftExtractedText.startOffset + leftExtractedText.selectionEnd;
-                        inputConnection.setSelection(leftStartIndex, leftEndIndex - 1);
+                        inputConnection.setSelection(currentStartIndex, currentEndIndex - 1);
                     }else if(isLongPress) {//1秒以上長押ししたとき
                         inputConnection.setSelection(0, 0);
                     }else{
@@ -186,16 +238,14 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
                     break;
                 case CustomCode.KEYCODE_RIGHTCURSOR:
-
+                    ExtractedText rightExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
                     if(isSelectionMode) {
-                        ExtractedText rightExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
                         int rightStartIndex = rightExtractedText.startOffset + rightExtractedText.selectionStart;
                         int rightEndIndex = rightExtractedText.startOffset + rightExtractedText.selectionEnd;
                         inputConnection.setSelection(rightStartIndex, rightEndIndex + 1);
                     }else if(isLongPress){
-                        ExtractedText extractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
-                        if (extractedText == null || extractedText.text == null) return;
-                        int index = extractedText.text.length();
+                        if (rightExtractedText == null || rightExtractedText.text == null) return;
+                        int index = rightExtractedText.text.length();
                         inputConnection.setSelection(index, index);
                     }else{
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
