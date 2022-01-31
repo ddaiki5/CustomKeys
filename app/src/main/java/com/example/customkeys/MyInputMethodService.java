@@ -85,6 +85,44 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     private int currentStartIndex, currentEndIndex, currentIndex;
     private int keyDirection = 0;//left=1, up=2, right=3, down=4
 
+    private MyCandidateView candidateView = null;
+    private StringBuilder mComposing = new StringBuilder();
+    private MyDictionary dictionary;
+
+    private class MyCandidateView extends CandidateView{
+        public MyCandidateView(Context context){
+            super(context);
+        }
+
+        @Override
+        public void onSelectCandidate(int index, String text){
+            getCurrentInputConnection().commitText(text, text.length());
+            mComposing.setLength(0);
+            setCandidatesViewShown(false);
+            candidateView.clear();
+            candidateView.update();
+        }
+    }
+
+    private class MyDictionary{
+        public MyDictionary(Context context){
+
+        }
+
+        public void updateCandidateList(String inword, CandidateView view){
+            view.clear();
+            for(String a : myDic){
+                if(a.startsWith(inword)){
+                    view.add(a);
+                }
+            }
+            view.update();
+        }
+
+        String [] myDic = {"あい", "あか", "愛", "遊び", "あそび"};
+    }
+
+
 
 
 
@@ -120,7 +158,6 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                         }else{
                             keyDirection = 0;
                         }
-
                         return true;
                     case MotionEvent.ACTION_UP:
                         Log.d("onTouch", "end");
@@ -139,9 +176,24 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     }
 
     @Override
+    public void onInitializeInterface(){
+        dictionary = new MyDictionary(this);
+        super.onInitializeInterface();
+    }
+
+    @Override
     public View onCreateCandidatesView(){
         //ここで候補を表示するViewを定義する
-        return null;
+        candidateView = new MyCandidateView(this);
+        return candidateView;
+    }
+
+    @Override
+    public void onFinishInput(){
+        mComposing.setLength(0);
+        candidateView.clear();
+        setCandidatesViewShown(false);
+        super.onFinishInput();
     }
 
     @Override
@@ -154,8 +206,6 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
         //longPressHandler.removeCallbacks(longPressReceiver);
         //isLongPress = false;
     }
-
-
 
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
@@ -178,7 +228,9 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     if (TextUtils.isEmpty(selectedText)) {
                         inputConnection.deleteSurroundingText(1, 0);
                     } else {
-                        inputConnection.commitText("", 1);
+                        //inputConnection.commitText("", 1);
+                        mComposing.setLength(mComposing.length() - 1);
+                        inputConnection.setComposingText(mComposing, 1);
                     }
                     break;
                 case Keyboard.KEYCODE_SHIFT:
@@ -187,8 +239,11 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     keyboardView.invalidateAllKeys();
                     break;
                 case Keyboard.KEYCODE_DONE:
-                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-
+                    if(mComposing.length()>0){
+                        inputConnection.commitText(mComposing, mComposing.length());
+                    }else {
+                        inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                    }
                     break;
                 case CustomCode.KEYCODE_COPY:
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_COPY));
@@ -280,7 +335,9 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 default :
                     if (primaryCode>=CustomCode.KEYCODE_kana && primaryCode <=CustomCode.KEYCODE_kana_end){
-                        inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
+                        mComposing.append(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection]);
+                        inputConnection.setComposingText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
+                        //inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
                     }else{
                         char code = (char) primaryCode;
                         if (Character.isLetter(code) && caps) {
@@ -288,6 +345,10 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                         }
                         inputConnection.commitText(String.valueOf(code), 1);
 
+                    }
+                    if(candidateView!=null&&mComposing.length()>0){
+                        dictionary.updateCandidateList(mComposing.toString(), candidateView);
+                        setCandidatesViewShown(candidateView.size()>0);
                     }
             }
         }
@@ -319,4 +380,6 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     public void swipeUp() {
 
     }
+
+
 }
