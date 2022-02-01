@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.graphics.Canvas;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
@@ -115,6 +116,12 @@ public abstract class CandidateView extends HorizontalScrollView
             view.measure(view.getMeasuredWidth(),view.getMeasuredHeight() ) ;
         }
         super.onLayout(changed, l, t, r, b);
+    }
+
+    public void debugCandidate(){
+        for(String s: candidate){
+            Log.d("candidate", s);
+        }
     }
 
     /**
