@@ -4,6 +4,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.Selection;
 import android.util.Log;
 import android.inputmethodservice.InputMethodService;
@@ -18,17 +19,30 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.BreakIterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MyInputMethodService extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
 
     private KeyboardView keyboardView;
     private Keyboard keyboard;
 
-    private ClipboardManager clipboardManager;
-    private Selection selection;
+    //private ClipboardManager clipboardManager;
+    //private Selection selection;
 
     private boolean caps = false;
     private boolean isSelectionMode = false;
@@ -105,21 +119,89 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     }
 
     private class MyDictionary{
+        ArrayList<String> candidatetarget = new ArrayList<String>();
         public MyDictionary(Context context){
 
         }
 
-        public void updateCandidateList(String inword, CandidateView view){
-            view.clear();
-            for(String a : myDic){
-                if(a.startsWith(inword)){
-                    view.add(a);
+
+
+        private void httpRequest(String url, CandidateView candidateview) throws IOException {
+            candidateview.clear();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).build();
+
+
+
+            client.newCall(request).enqueue(new Callback() {
+
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    Log.e("Hoge", e.getMessage());
                 }
-            }
-            view.update();
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String jsonStr = response.body().string();
+                    Log.d("Hoge","jsonStr=" + jsonStr);
+                    try{
+                        //jsonパース
+                        JSONArray array = new JSONArray(jsonStr);
+                        candidateview.clear();
+                        Handler mainHandler = new Handler(Looper.getMainLooper());
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                for(int i=0; i< array.length(); i++){
+                                    try {
+                                        JSONArray s = array.getJSONArray(i);
+                                        s = s.getJSONArray(1);
+                                        //Log.d("Hoge","jsonStr=" + s.toString());
+                                        for(int j=0; j<s.length(); j++){
+                                            try {
+                                                candidateview.add(s.getString(j));
+                                            }catch (Exception e){
+                                                Log.d("error", candidateview.getClass().toString());
+                                            }
+                                        }
+                                    }catch (Exception e){
+                                        Log.d("error", candidateview.getClass().toString());
+                                    }
+
+                                }
+                                candidateview.update();
+                                //Log.d("update", "viewupdate");
+                                setCandidatesViewShown(candidateview.size()>0);
+                                candidateview.invalidate();
+                                //candidateview.debugCandidate();
+                                setCandidatesView(candidateview);
+                            }
+                        });
+
+
+                    }catch(Exception e){
+                        Log.e("Hoge",e.getMessage());
+                    }
+
+                }
+            });
+            //view.add("ああ");
+
+
         }
 
-        String [] myDic = {"あい", "あか", "愛", "遊び", "あそび"};
+        public void updateCandidateList(String inword, CandidateView view){
+            //String target = new String(inword, "UTF-8");
+            try {
+                httpRequest("http://www.google.com/transliterate?langpair=ja-Hira|ja&text="+inword, view);
+            }catch (Exception e){
+                Log.e("Hoge",e.getMessage());
+            }
+
+
+        }
+
     }
 
 
@@ -169,7 +251,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
             }
         });
 
-        clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        //clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         memo = new Memo();
 
         return keyboardView;
@@ -241,6 +323,7 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                 case Keyboard.KEYCODE_DONE:
                     if(mComposing.length()>0){
                         inputConnection.commitText(mComposing, mComposing.length());
+                        mComposing.setLength(0);
                     }else {
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                     }
@@ -336,20 +419,25 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                 default :
                     if (primaryCode>=CustomCode.KEYCODE_kana && primaryCode <=CustomCode.KEYCODE_kana_end){
                         mComposing.append(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection]);
-                        inputConnection.setComposingText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
+                        inputConnection.setComposingText(mComposing.toString(), mComposing.length());
+                        Log.d("composing", mComposing.toString());
+                        //Log.d("composing", inputConnection.compo);
                         //inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
                     }else{
-                        char code = (char) primaryCode;
-                        if (Character.isLetter(code) && caps) {
-                            code = Character.toUpperCase(code);
-                        }
-                        inputConnection.commitText(String.valueOf(code), 1);
+                        //char code = (char) primaryCode;
+                        //if (Character.isLetter(code) && caps) {
+                            //code = Character.toUpperCase(code);
+                        //}
+                        //inputConnection.commitText(String.valueOf(code), 1);
 
                     }
-                    if(candidateView!=null&&mComposing.length()>0){
-                        dictionary.updateCandidateList(mComposing.toString(), candidateView);
-                        setCandidatesViewShown(candidateView.size()>0);
-                    }
+
+            }
+            if(candidateView!=null&&mComposing.length()>0){
+                dictionary.updateCandidateList(mComposing.toString(), candidateView);
+                //setCandidatesViewShown(candidateView.size()>0);
+            }else{
+                setCandidatesViewShown(false);
             }
         }
 
