@@ -31,7 +31,7 @@
 
 ## スライド
 
-![](https://github.com/ddaiki5/CustomKeys/tree/images/スライド1.PNG)
+![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド1.PNG)
 ![](https://github.com/ddaiki5/CustomKeys/tree/images/スライド2.PNG)
 ![](https://github.com/ddaiki5/CustomKeys/tree/images/スライド3.PNG)
 ![](https://github.com/ddaiki5/CustomKeys/tree/images/スライド4.PNG)
