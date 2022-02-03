@@ -79,6 +79,7 @@ public class CustomCode {
             37, 39
     };
 
+    //濁点半濁点促音を変換
     public static String convert_diatric(String target){
         if(FIFTY_TO_NUM.containsKey(target)) {
             int target_num = FIFTY_TO_NUM.get(target);
