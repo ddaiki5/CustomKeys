@@ -59,7 +59,9 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     private float tapX = 0;
     private float tapY = 0;
 
+    //BreakIteratorを使ったカーソル操作のためのクラス
     public class Memo{
+        public static final int LEFT=-1, RIGHT=1;
         public CharSequence text;
         private BreakIterator sentenceBoundary, wordBoundary;
 
@@ -80,17 +82,42 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 //            }
         }
 
+        //文字のまとまりごとにカーソルを移動
         public int getNearestCursorNum(int i, int direction){
             int wordLimit = wordBoundary.following(i);
-            if(direction==1) {
-
-            }else {
+            if(direction==RIGHT) {
+                wordLimit = wordBoundary.next();
+            }else if(direction==LEFT){
                 wordLimit = wordBoundary.next(-2);
             }
             if(wordLimit == BreakIterator.DONE){
                 return BreakIterator.DONE;
             }
+            if(wordLimit < 0){
+                wordLimit = 0;
+            }
             //Log.d("cur", "[" + text.toString().substring(wordBoundary.previous(), wordLimit) + "]");
+            return wordLimit;
+        }
+
+        //句点のまとまりごとにカーソルを移動
+        public int getNearestSentenceCursor(int i, int direction){
+            int wordLimit = sentenceBoundary.following(i);
+            if(direction==1){
+                wordLimit = sentenceBoundary.next();
+            }else{
+                wordLimit = sentenceBoundary.next(-2);
+            }
+            if(wordLimit == BreakIterator.DONE){
+                if(direction==LEFT) {
+                    wordLimit=0;
+                }else{
+                    wordLimit= text.length();
+                }
+                //return BreakIterator.DONE;
+            }
+
+            //Log.d("cur", "[" + text.toString().substring(sentenceBoundary.previous(), wordLimit) + "]");
             return wordLimit;
         }
     }
@@ -113,25 +140,22 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
             getCurrentInputConnection().commitText(text, text.length());
             mComposing.setLength(0);
             setCandidatesViewShown(false);
-            candidateView.clear();
-            candidateView.update();
+            super.clear();
+            super.update();
         }
     }
 
+    /**
+     * 変換候補の単語を扱うクラス
+     */
     private class MyDictionary{
-        ArrayList<String> candidatetarget = new ArrayList<String>();
         public MyDictionary(Context context){
-
         }
-
-
 
         private void httpRequest(String url, CandidateView candidateview) throws IOException {
             candidateview.clear();
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().url(url).build();
-
-
 
             client.newCall(request).enqueue(new Callback() {
 
@@ -187,8 +211,6 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                 }
             });
             //view.add("ああ");
-
-
         }
 
         public void updateCandidateList(String inword, CandidateView view){
@@ -198,14 +220,9 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
             }catch (Exception e){
                 Log.e("Hoge",e.getMessage());
             }
-
-
         }
 
     }
-
-
-
 
 
     @Override
@@ -215,7 +232,8 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
         keyboardView.setKeyboard(keyboard);
         keyboardView.setOnKeyboardActionListener(this);
         keylist = keyboardView.getKeyboard().getKeys();
-        keyboardView.setOnTouchListener(new View.OnTouchListener() {
+        keyboardView.setPreviewEnabled(false);
+        keyboardView.setOnTouchListener(new View.OnTouchListener() {//フリック操作のためのリスナー
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 float x = motionEvent.getX();
@@ -230,12 +248,16 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     case MotionEvent.ACTION_MOVE:
                         Log.d("onTouch", "move");
                         if(tapX-x>=keyboardView.getWidth()/8){
+                            Log.d("TouchDir", "left");
                             keyDirection=1;
                         }else if(tapX-x<=-keyboardView.getHeight()/8){
+                            Log.d("TouchDir", "right");
                             keyDirection = 3;
                         }else if(tapY-y<=-keyboardView.getWidth()/8){
+                            Log.d("TouchDir", "down");
                             keyDirection=4;
                         }else if(tapY-y>=keyboardView.getHeight()/8){
+                            Log.d("TouchDir", "up");
                             keyDirection=2;
                         }else{
                             keyDirection = 0;
@@ -267,13 +289,17 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
     public View onCreateCandidatesView(){
         //ここで候補を表示するViewを定義する
         candidateView = new MyCandidateView(this);
+        Log.d("log", "create CandidateView");
         return candidateView;
     }
 
     @Override
     public void onFinishInput(){
         mComposing.setLength(0);
-        candidateView.clear();
+        if(candidateView!=null) {
+            candidateView.clear();
+        }
+
         setCandidatesViewShown(false);
         super.onFinishInput();
     }
@@ -305,14 +331,23 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
 
             switch(primaryCode) {
                 case Keyboard.KEYCODE_DELETE :
+                    //選択中も文字を取得
                     CharSequence selectedText = inputConnection.getSelectedText(0);
 
-                    if (TextUtils.isEmpty(selectedText)) {
-                        inputConnection.deleteSurroundingText(1, 0);
-                    } else {
-                        //inputConnection.commitText("", 1);
-                        mComposing.setLength(mComposing.length() - 1);
-                        inputConnection.setComposingText(mComposing, 1);
+                    if (TextUtils.isEmpty(selectedText)) {//選択中でないないなら
+                        //未確定なら
+                        if(mComposing.length()>0) {
+                            //未確定の文字列の最後を消す
+                            mComposing.setLength(mComposing.length() - 1);
+                            //未確定文字列に反映
+                            inputConnection.setComposingText(mComposing, 1);
+                        }else{//未確定の文字列がないなら
+                            //カーソルの一つ後ろを削除
+                            inputConnection.deleteSurroundingText(1, 0);
+                        }
+                    } else {//選択中なら
+                        //選択している文字列を消す
+                        inputConnection.commitText("", 1);
                     }
                     break;
                 case Keyboard.KEYCODE_SHIFT:
@@ -321,8 +356,10 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     keyboardView.invalidateAllKeys();
                     break;
                 case Keyboard.KEYCODE_DONE:
-                    if(mComposing.length()>0){
+                    if(mComposing.length()>0){//未確定なら
+                        //確定した文字列にする
                         inputConnection.commitText(mComposing, mComposing.length());
+                        //未確定文字列を保存するバッファを消す
                         mComposing.setLength(0);
                     }else {
                         inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
@@ -330,57 +367,66 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     break;
                 case CustomCode.KEYCODE_COPY:
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_COPY));
-                    //CharSequence textToCopy = inputConnection.getSelectedText(0);
-                    //if(textToCopy==null)break;
-                   // ClipData clipCopy = ClipData.newPlainText(null, textToCopy.toString());
-                    //clipboardManager.setPrimaryClip(clipCopy);
+
                     break;
                 case CustomCode.KEYCODE_CUT:
-//                    CharSequence textToCut;
-//                    textToCut = inputConnection.getSelectedText(0);
-//                    if(textToCut==null)break;
-//                    ClipData clipCut = ClipData.newPlainText(null, textToCut.toString());
-//                    clipboardManager.setPrimaryClip(clipCut);
-//                    //inputConnection.deleteSurroundingText(textToCut.length(), 0);
-//                    inputConnection.commitText("", 1);
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_CUT));
                     break;
                 case CustomCode.KEYCODE_PASTE:
-                    //clipboardから文字データを取得
-//                    CharSequence textToPaste;
-//                    try {
-//                        textToPaste = clipboardManager.getPrimaryClip().getItemAt(0).getText();
-//                    } catch (Exception e) {
-//                        break;
-//                    }
-//                    inputConnection.setComposingText(textToPaste, 0);
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_PASTE));
                     break;
                 case CustomCode.KEYCODE_UNDO:
                     Log.d("UNDO", "push UNDO");
-                    isLongPress = !isLongPress;
+                    //isLongPress = !isLongPress;
+                    if (isSelectionMode) {
+                        if(keyDirection==2){
+                            inputConnection.setSelection(currentStartIndex, memo.getNearestCursorNum(currentStartIndex, memo.LEFT));
+                        }else {
+                            inputConnection.setSelection(currentStartIndex, memo.getNearestSentenceCursor(currentStartIndex, memo.LEFT));
+                        }
+                    }else {
+                        if(keyDirection==2){
+                            inputConnection.setSelection(memo.getNearestCursorNum(currentStartIndex, memo.LEFT), memo.getNearestCursorNum(currentStartIndex, memo.LEFT));
+                        }else {
+                            inputConnection.setSelection(memo.getNearestSentenceCursor(currentStartIndex, memo.LEFT), memo.getNearestSentenceCursor(currentStartIndex, memo.LEFT));
+                        }
+                    }
                     break;
                 case CustomCode.KEYCODE_REDO:
                     Log.d("REDO", "push REDO");
-                    int end = memo.getNearestCursorNum(currentStartIndex, 1);
+                    int end = memo.getNearestCursorNum(currentStartIndex, memo.RIGHT);
                     inputConnection.setSelection(end, end);
                     break;
                 case CustomCode.KEYCODE_REGION:
+                    //選択モードへのフラグを変更
+                    if(isSelectionMode){
+                        inputConnection.setSelection(currentStartIndex, currentStartIndex);
+                    }
                     isSelectionMode = !isSelectionMode;
                     keyboard.setShifted(isSelectionMode);
                     keyboardView.invalidateAllKeys();
                     break;
                 case CustomCode.KEYCODE_TAB:
-                    //inputConnection.commitText("\t", 1);
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
                     break;
                 case CustomCode.KEYCODE_LEFTCURSOR:
                     if(isSelectionMode) {//選択モードのとき
-                        inputConnection.setSelection(currentStartIndex, currentEndIndex - 1);
-                    }else if(isLongPress) {//1秒以上長押ししたとき
-                        inputConnection.setSelection(0, 0);
-                    }else{
-                        inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+                        if(keyDirection==2){//左にフリックしているとき
+                            //句点ごとのカーソル移動
+
+                            inputConnection.setSelection(currentStartIndex, memo.getNearestSentenceCursor(currentStartIndex, memo.LEFT));
+                        }else {
+                            inputConnection.setSelection(currentStartIndex, currentEndIndex - 1);
+                        }
+                    }else {
+                        if(keyDirection==2){
+                            int leftSentenceEnd = memo.getNearestSentenceCursor(currentStartIndex, memo.LEFT);
+                            inputConnection.setSelection(leftSentenceEnd, leftSentenceEnd);
+                        }else if (isLongPress) {
+                            inputConnection.setSelection(0, 0);
+                        } else {
+                            inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+                        }
                     }
                     break;
                 case CustomCode.KEYCODE_UPCURSOR:
@@ -390,17 +436,23 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                     inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
                     break;
                 case CustomCode.KEYCODE_RIGHTCURSOR:
-                    ExtractedText rightExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
-                    if(isSelectionMode) {
-                        int rightStartIndex = rightExtractedText.startOffset + rightExtractedText.selectionStart;
-                        int rightEndIndex = rightExtractedText.startOffset + rightExtractedText.selectionEnd;
-                        inputConnection.setSelection(rightStartIndex, rightEndIndex + 1);
-                    }else if(isLongPress){
-                        if (rightExtractedText == null || rightExtractedText.text == null) return;
-                        int index = rightExtractedText.text.length();
-                        inputConnection.setSelection(index, index);
-                    }else{
-                        inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
+                    //ExtractedText rightExtractedText = inputConnection.getExtractedText(new ExtractedTextRequest(), 0);
+                    if(isSelectionMode) {//選択モードなら
+                        if(keyDirection==4) {//右にフリックしたとき
+                            inputConnection.setSelection(currentStartIndex, memo.getNearestSentenceCursor(currentStartIndex, memo.RIGHT));
+                        }else{
+                            inputConnection.setSelection(currentStartIndex, currentEndIndex + 1);
+                        }
+                    }else {
+                        if(keyDirection==4){//右にフリックしたとき
+                            int rightSentenceEnd = memo.getNearestSentenceCursor(currentStartIndex, memo.RIGHT);
+                            inputConnection.setSelection(rightSentenceEnd, rightSentenceEnd);
+                        }else if (isLongPress) {
+                            int index = extractedText.text.length();
+                            inputConnection.setSelection(index, index);
+                        } else {
+                            inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
+                        }
                     }
                     break;
                 case CustomCode.KEYCODE_DIACRITIC:
@@ -424,12 +476,12 @@ public class MyInputMethodService extends InputMethodService implements Keyboard
                         //Log.d("composing", inputConnection.compo);
                         //inputConnection.commitText(CustomCode.NUM_TO_FIFTY[primaryCode-CustomCode.KEYCODE_kana + keyDirection], 1);
                     }else{
-                        //char code = (char) primaryCode;
+                        char code = (char) primaryCode;
                         //if (Character.isLetter(code) && caps) {
                             //code = Character.toUpperCase(code);
                         //}
-                        //inputConnection.commitText(String.valueOf(code), 1);
-
+                        mComposing.append(String.valueOf(code));
+                        inputConnection.setComposingText(mComposing.toString(), mComposing.length());
                     }
 
             }
