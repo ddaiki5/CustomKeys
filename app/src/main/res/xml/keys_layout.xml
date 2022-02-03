@@ -18,7 +18,8 @@
     </Row>
 
     <Row>
-        <Key android:codes="10006" android:keyLabel="?" android:keyEdgeFlags="left" />
+        <Key android:codes="10012" android:keyLabel="↑" android:keyWidth="10%p" android:keyEdgeFlags="left" />
+        <Key android:codes="10012" android:keyLabel="↓" android:keyWidth="10%p" />
         <Key android:codes="10100, 10101, 10102, 10103, 10104" android:keyLabel="あ" />
         <Key android:codes="10105, 10106, 10107, 10108, 10109" android:keyLabel="か" />
         <Key android:codes="10110, 10111, 10112, 10113, 10114" android:keyLabel="さ" />
