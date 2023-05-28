@@ -15,39 +15,14 @@
 1. 編集操作は指の移動を減らすためにキーボード上のボタンから選択できるようにした。 
 2. カーソル操作もキーボード上から行えるようにした。通常の一文字移動に加えて、単語のまとまりごとの移動、一文単位の移動を加えることでキーボードのカーソル操作だけでストレスなく操作できるようにする。
 3. 選択モードへの変更ボタンを設置した。選択モード中も上のカーソル操作で選択範囲を選べる。
-4. Tabキーを追加した。現在は対応しているアプリは少ないが、対応するアプリが増えると便利だと考えた。
+4. Tabキーを追加した。
 
 ## 今後の改良点
 
-- バグがたくさんあるので直す
-- 普通のキーボードとしてストレスがないように実装する
 - AndroidのAPI30で非推奨となったクラスを使っている部分があるので書き直す
 - カーソル操作を売りにしているが、やはりまだまだ改善点があるので、最適なキー配置や必要な機能、不要な機能の評価を行う
 - 大衆向けの機能ではなく、ニッチな分野の専用キーボードにする。例えばプログラミング専用モバイル向けキーボードは需要がそのうちでそう
 
-## 謝辞
-
-本プロジェクトはイノベイティブ総合コミュニケーションデザイン(ICCD)のプロジェクトとして[mochi-pettan](https://github.com/mochi-pettan)と共同で提案したものである。助言をいただいた皆様には感謝申し上げます。
-
-## スライド
-
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド1.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド2.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド3.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド4.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド5.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド6.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド7.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド8.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド9.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド10.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド11.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド12.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド13.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド14.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド15.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド16.PNG)
-![](https://github.com/ddaiki5/CustomKeys/blob/images/スライド17.PNG)
 
 
 ## 参考
